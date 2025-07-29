@@ -1,0 +1,1 @@
+# EchoPlay – A full-stack app to stream videos and post tweet-style reflections, blending media and microblogging.
