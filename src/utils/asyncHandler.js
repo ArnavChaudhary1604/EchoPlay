@@ -1,10 +1,13 @@
-const asyscHandler= (requestHandler) =>{
-    (req,res,next) => {
-        Promise.resolve(requestHandler(req,res,next)).catch((err) => next(err))
+const asyncHandler = (requestHandler) => { // Higher-order function jo ek async route handler ko leta hai
+    (req, res, next) => { // Ye actual Express middleware function hai jo req, res, next ko handle karta hai
+        Promise.resolve(                     // requestHandler ko promise bana ke resolve karta hai
+            requestHandler(req, res, next)   // Ye tera actual async route handler function call karta hai
+        ).catch((err) => next(err))          // Agar koi error aata hai, toh usse Express ke error handler ko de deta hai
     }
 }
 
-export default asyscHandler 
+
+export default asyncHandler 
 
 // const asyscHandler =() => {}
 // const asyscHandler = (func) => () => {}
@@ -15,9 +18,9 @@ export default asyscHandler
 //         await fn(req,res,next)
 //     }
 //     catch(error){
-//         res.status(err.code || 500).json({
+//         res.status(error.code || 500).json({
 //             success: false,
-//             message: err.message
+//             message: error.message
 //         })
 //     }
 // }
