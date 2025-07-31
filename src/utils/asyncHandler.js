@@ -1,5 +1,5 @@
 const asyncHandler = (requestHandler) => { // Higher-order function jo ek async route handler ko leta hai
-    (req, res, next) => { // Ye actual Express middleware function hai jo req, res, next ko handle karta hai
+    return (req, res, next) => { // Ye actual Express middleware function hai jo req, res, next ko handle karta hai
         Promise.resolve(                     // requestHandler ko promise bana ke resolve karta hai
             requestHandler(req, res, next)   // Ye tera actual async route handler function call karta hai
         ).catch((err) => next(err))          // Agar koi error aata hai, toh usse Express ke error handler ko de deta hai
