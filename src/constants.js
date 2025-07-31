@@ -1,1 +1,1 @@
-export const DB_NAME="EchoPlay"
+export const DB_NAME="echoplay"
