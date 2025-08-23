@@ -5,16 +5,19 @@ import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import asyncHandler from "../utils/asyncHandler.js"
 import { channel, subscribe } from "diagnostics_channel"
+import { console } from "inspector"
 
 
 const toggleSubscription = asyncHandler(async (req, res) => {
+    console.log("toggleSubscription called")
     const {channelId} = req.params
     // TODO: toggle subscription
     const userId = req.user?._id
-
+    
     if(!userId){
         throw new ApiError(404, "No such user exists")
     }
+    console.log(userId)
 
     const subscriptionStatus = await Subscription.findOne(
         {
@@ -52,7 +55,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         )
     }
 
-})
+})//tested
 
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
@@ -71,7 +74,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
             "Subscriber List fetched successfully"
         )
     )
-})
+})//tested 
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
@@ -90,7 +93,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
             "Subscriber List fetched successfully"
         )
     )
-})
+})//tested
 
 export {
     toggleSubscription,

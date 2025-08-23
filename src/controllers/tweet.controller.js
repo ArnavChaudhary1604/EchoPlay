@@ -11,14 +11,14 @@ const createTweet = asyncHandler(async (req, res) => {
     // get userId for owner from req.params
 
     const { content } = req.body
-    const { userId } =req.params
+    const userId =req.user?._id
 
     if(!content || !userId || !content.trim()){
         throw new ApiError(400, "Both content and userId are req")
     }
 
     const tweet = await Tweet.create({
-        owner : mongoose.Types.ObjectId(userId),
+        owner : userId,
         content : content.trim()
     })
 
@@ -29,7 +29,7 @@ const createTweet = asyncHandler(async (req, res) => {
             "Tweet created successfully"
         )
     )
-})
+})//tested 
 
 const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
@@ -37,7 +37,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
 
     const allTweets = await Tweet.find(
         {    
-            owner : mongoose.Types.ObjectId(userId)
+            owner : userId
         }
     )
     
@@ -48,7 +48,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
             "All user tweets fetched successfully"
         )
     )
-})
+})//tested
 
 const updateTweet = asyncHandler(async (req, res) => {
     //TODO: update tweet
@@ -76,7 +76,7 @@ const updateTweet = asyncHandler(async (req, res) => {
             "Tweet updated successfully"
         )
     )
-})
+})//tested
 
 const deleteTweet = asyncHandler(async (req, res) => {
     //TODO: delete tweet
@@ -95,7 +95,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
             "Tweet deleted successfully"
         )
     )
-})
+})//tested
 
 export {
     createTweet,
