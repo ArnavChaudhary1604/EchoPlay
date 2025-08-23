@@ -16,7 +16,7 @@ const healthcheck = asyncHandler(async (req, res) => {
             ,"The backend is working fine"
         )
     )
-})
+})//tested
 
 export {
     healthcheck

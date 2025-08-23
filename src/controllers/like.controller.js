@@ -42,8 +42,8 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
                 "Video Liked by user"
             )
         )
-})
-
+})//tested
+ 
 const toggleCommentLike = asyncHandler(async (req, res) => {
     const {commentId} = req.params
     //TODO: toggle like on comment
@@ -82,7 +82,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
                 "Comment Liked by user"
             )
         )
-})
+})//tested
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
     const {tweetId} = req.params
@@ -123,7 +123,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
             )
         )
 }
-)
+)//tested
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
@@ -154,7 +154,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
             "All liked vides fetched successfully"
         )
     )
-})
+})//tested
 
 export {
     toggleCommentLike,

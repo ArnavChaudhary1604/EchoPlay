@@ -17,7 +17,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
         {
             video : videoId
         }
-    ).populate(" owner "," username fullName avatar ").skip(skipInt).limit(limitInt)
+    ).populate("owner","username fullName avatar").skip(skipInt).limit(limitInt)
 
     res.json(
         new ApiResponse(
@@ -26,7 +26,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
             "All comments fetched successfully"
         )
     )
-})
+})//tested
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
@@ -61,7 +61,7 @@ const addComment = asyncHandler(async (req, res) => {
         )
     )
 
-})
+})//tested
 
 const updateComment = asyncHandler(async (req, res) => {
     // TODO: update a comment
@@ -93,7 +93,7 @@ const updateComment = asyncHandler(async (req, res) => {
             "Comment content updated successfully"
         )
     )
-})
+})//tested 
 
 const deleteComment = asyncHandler(async (req, res) => {
     // TODO: delete a comment
@@ -112,7 +112,7 @@ const deleteComment = asyncHandler(async (req, res) => {
             "The comment is deleted successfully"
         )
     )
-})
+})//tested
 
 export {
     getVideoComments, 

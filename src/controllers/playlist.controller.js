@@ -33,7 +33,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
             "Playlist created successfully"
         )
     )
-})
+})//tested
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
     const {userId} = req.params
@@ -56,7 +56,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
             "All playlists of user fetched successfully"
         )
     )
-})
+})//tested
 
 const getPlaylistById = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
@@ -75,7 +75,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
             "Playlist fetched by id successfully"
         )
     )
-})
+})//tested
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
@@ -101,8 +101,8 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
             "Video added successfully"
         )
     )
-})
-
+})//tested
+ 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
     // TODO: remove video from playlist
@@ -125,7 +125,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         )
     )
 
-})
+})//tested
 
 const deletePlaylist = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
@@ -144,7 +144,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
             "Playlist deleted successfully"
         )
     )
-})
+})//tested
 
 const updatePlaylist = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
@@ -182,7 +182,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
             "Playlist details updated successfully"
         )
     )
-})
+})//tested
 
 export {
     createPlaylist,
