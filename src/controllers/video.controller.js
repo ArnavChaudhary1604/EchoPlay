@@ -26,7 +26,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     const skip = (intPage - 1)*intLimit
 
     const sortField = sortBy || "createdAt";
-    const sortDirection = sortType === "1" ? 1 : -1;
+    const sortDirection = sortType === "-1" ? -1 : 1;
 
    const allVideos = await Video.aggregate([
         {   
@@ -106,8 +106,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
     )
    )
 
-})
-
+})//tested
+ 
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body
     // TODO: get video, upload to cloudinary, create video
@@ -161,12 +161,12 @@ const publishAVideo = asyncHandler(async (req, res) => {
             "Video uploaded successfully"
         )
     )
-})
+})//tested
  
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: get video by id
-    const video = await Video.findById( mongoose.Types.ObjectId(videoId) )
+    const video = await Video.findById(videoId)
 
     if(!video){
         throw new ApiError(404, "No such video exists")
@@ -179,7 +179,7 @@ const getVideoById = asyncHandler(async (req, res) => {
             "Video details fetched successfully"
         )
     )
-})
+})//tested
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
@@ -188,9 +188,11 @@ const updateVideo = asyncHandler(async (req, res) => {
     // findbyid and update
     const { title, description } = req.body
 
+    //console.log(req.file)
+
     let thumbnailLocalPath
-    if(req.files && Array.isArray(req.files.thumbnail) && req.files.thumbnail.length > 0){
-        thumbnailLocalPath = req.files.thumbnail[0].path
+    if(req.file){
+        thumbnailLocalPath = req.file.path
     }
 
     let thumbnail
@@ -198,6 +200,7 @@ const updateVideo = asyncHandler(async (req, res) => {
     let oldThumbnailUrl
     if(thumbnailLocalPath){
         thumbnail = await uploadOnCloudinary(thumbnailLocalPath)
+        //console.log("Cloudinary Response:", thumbnail)
         thumbnailUrl = thumbnail.url
 
         const existingVideo = await Video.findById(videoId).select("thumbnail")
@@ -237,7 +240,7 @@ const updateVideo = asyncHandler(async (req, res) => {
             "Video details updated successfully"
         )
     )
-})
+})//tested
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
@@ -247,6 +250,10 @@ const deleteVideo = asyncHandler(async (req, res) => {
     if(!deletedVideo){
         throw new ApiError(400, "No such video exist")
     }
+
+    if (deletedVideo.videoFile) await deleteFromCloudinary(deletedVideo.videoFile, "video")
+    if (deletedVideo.thumbnail) await deleteFromCloudinary(deletedVideo.thumbnail)
+
     
     res.json(
         new ApiResponse(
@@ -255,7 +262,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
             "Video deleted successfully"
         )
     )
-})
+})//tested
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
@@ -276,7 +283,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
             "Publish status"
         )
     )
-})
+})//tested
 
 export {
     getAllVideos,
