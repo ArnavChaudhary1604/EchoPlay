@@ -3,7 +3,7 @@ import {Video} from "../models/video.model.js"
 import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import asyncHandler from "../utils/asyncHandler.js"
 import {deleteFromCloudinary, uploadOnCloudinary} from "../utils/cloudinary.js"
 
 
@@ -116,12 +116,12 @@ const publishAVideo = asyncHandler(async (req, res) => {
     // use uploadOnCloudinary
     // add data in video db
 
-    const { username } = req.params
+    const userId = req.user?._id
 
-    const user = await User.findOne({username : username})
+    const user = await User.findById(userId)
 
     if(!user){
-        throw new ApiError(404, "Something went wrong")
+        throw new ApiError(404, "No such user exists")
     }
 
     let videoFileLocalPath
@@ -145,7 +145,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         {
             videoFile : videoFile.url,
             thumbnail : thumbnail.url,
-            owner: user._id,
+            owner: userId,
             title : title,
             description : description? description : " ",
             duration: videoFile.duration,
