@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 // IMPORTANT: Make sure this port matches your backend server's port
-const API_BASE_URL = "http://localhost:8000/api/v1";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3000/api/v1";
 
 function Auth() {
   const [isLogin, setIsLogin] = useState(true);
