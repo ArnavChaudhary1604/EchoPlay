@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { ThumbsUp, ThumbsDown } from 'lucide-react';
 
-const API_BASE_URL = "http://localhost:8000/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function VideoPlayer() {
   const { id: videoId } = useParams();
@@ -13,13 +14,16 @@ function VideoPlayer() {
 
   const fetchVideoAndComments = async () => {
     try {
-      setLoading(true);
-      const videoResponse = await axios.get(`${API_BASE_URL}/videos/${videoId}`);
-      setVideo(videoResponse.data.data);
+        if (!videoId) return;
+      const token = localStorage.getItem("accessToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const commentsResponse = await axios.get(`${API_BASE_URL}/comments/${videoId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-      });
+      const [videoResponse, commentsResponse] = await Promise.all([
+        axios.get(`${API_BASE_URL}/videos/${videoId}`, config),
+        axios.get(`${API_BASE_URL}/comments/${videoId}`, config)
+      ]);
+
+      setVideo(videoResponse.data.data);
       setComments(commentsResponse.data.data);
     } catch (error) {
       console.error("Failed to fetch video or comments:", error);
@@ -29,9 +33,7 @@ function VideoPlayer() {
   };
 
   useEffect(() => {
-    if (videoId) {
-      fetchVideoAndComments();
-    }
+    fetchVideoAndComments();
   }, [videoId]);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -46,53 +48,69 @@ function VideoPlayer() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNewComment("");
-      // Refresh comments after posting
       fetchVideoAndComments(); 
     } catch (error) {
-      console.error("Failed to post comment:", error);
       alert("Failed to post comment.");
     }
   };
 
-  if (loading) return <div className="text-center p-10">Loading Video...</div>;
+  if (loading) return <div className="text-center p-10 text-gray-400">Loading Video...</div>;
   if (!video) return <div className="text-center p-10">Video not found.</div>;
 
   return (
     <div className="container mx-auto p-4">
-      <div className="aspect-video bg-black mb-4">
+      <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4">
         <video src={video.videoFile} controls autoPlay className="w-full h-full"></video>
       </div>
-      <h1 className="text-2xl font-bold">{video.title}</h1>
-      <p className="text-gray-600">{video.views} views</p>
-      <p className="mt-2">{video.description}</p>
-      <hr className="my-6" />
+      <h1 className="text-2xl font-bold text-white">{video.title}</h1>
+      <div className="flex justify-between items-center my-4">
+        <div className="flex items-center space-x-4">
+            {/* Owner info would be great here, but it's not in the getVideoById response */}
+            <p className="text-gray-400">{video.views} views</p>
+        </div>
+        <div className="flex items-center space-x-2">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-gray-800 rounded-full hover:bg-gray-700">
+                <ThumbsUp className="w-5 h-5"/> 
+                <span>Like</span>
+            </button>
+            <button className="px-4 py-2 bg-gray-800 rounded-full hover:bg-gray-700">Subscribe</button>
+        </div>
+      </div>
 
-      {/* Comment Section */}
+      <div className="bg-[#121212] border border-gray-800 p-4 rounded-lg">
+        <p className="text-sm text-gray-300">{video.description}</p>
+      </div>
+
+      <hr className="my-6 border-gray-800" />
+
       <div>
-        <h2 className="text-xl font-bold mb-4">{comments.length} Comments</h2>
+        <h2 className="text-xl font-bold text-white mb-4">{comments.length} Comments</h2>
         
-        {/* Add Comment Form */}
-        <form onSubmit={handleCommentSubmit} className="mb-6">
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add a comment..."
-            className="w-full p-2 border rounded-md"
-            rows={3}
-          ></textarea>
-          <button type="submit" className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            Comment
-          </button>
+        <form onSubmit={handleCommentSubmit} className="mb-6 flex items-start space-x-3">
+          <img src={JSON.parse(localStorage.getItem('user') || '{}').avatar} className="w-10 h-10 rounded-full" />
+          <div className="flex-1">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment..."
+              className="w-full p-2 bg-transparent border-b border-gray-700 focus:border-white outline-none"
+              rows={1}
+            ></textarea>
+            <div className="text-right mt-2">
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 disabled:bg-gray-600" disabled={!newComment.trim()}>
+                    Comment
+                </button>
+            </div>
+          </div>
         </form>
 
-        {/* Comments List */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {comments.map((comment) => (
-            <div key={comment._id} className="flex items-start">
-              <img src={comment.owner.avatar} alt={comment.owner.username} className="w-10 h-10 rounded-full mr-3" />
+            <div key={comment._id} className="flex items-start space-x-3">
+              <img src={comment.owner.avatar} alt={comment.owner.username} className="w-10 h-10 rounded-full" />
               <div>
-                <p className="font-semibold">{comment.owner.username}</p>
-                <p>{comment.content}</p>
+                <p className="font-semibold text-sm text-white">{comment.owner.username}</p>
+                <p className="text-gray-300">{comment.content}</p>
               </div>
             </div>
           ))}

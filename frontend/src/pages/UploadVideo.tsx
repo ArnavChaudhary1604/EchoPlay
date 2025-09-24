@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:8000/api/v1/videos";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function UploadVideo() {
   const [title, setTitle] = useState("");
@@ -13,8 +13,8 @@ function UploadVideo() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!videoFile || !thumbnail) {
-      alert("Please select both a video file and a thumbnail.");
+    if (!videoFile || !thumbnail || !title || !description) {
+      alert("Please fill all fields and select both files.");
       return;
     }
 
@@ -24,45 +24,79 @@ function UploadVideo() {
     formData.append("videoFile", videoFile);
     formData.append("thumbnail", thumbnail);
 
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+        alert("You must be logged in to upload a video.");
+        return;
+    }
+
     try {
-      // NOTE: You need to handle authentication (sending the JWT token)
-      // This example assumes public uploads or auth handled by axios interceptors
-      const response = await axios.post(API_URL, formData, {
+      const response = await axios.post(`${API_BASE_URL}/videos`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-           // Example: "Authorization": `Bearer ${your_auth_token}`
+          "Authorization": `Bearer ${token}`
         },
       });
-      alert("Upload successful!");
+      alert("Video uploaded successfully!");
       navigate(`/video/${response.data.data._id}`);
     } catch (error) {
-      console.error("Upload failed", error);
-      alert("Upload failed. Check console for details.");
+      alert("Upload failed. Please try again.");
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Upload Video</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label>Title</label>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border p-2 rounded" />
-        </div>
-        <div>
-          <label>Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border p-2 rounded" />
-        </div>
-        <div>
-          <label>Video File</label>
-          <input type="file" accept="video/*" onChange={(e) => setVideoFile(e.target.files ? e.target.files[0] : null)} className="w-full" />
-        </div>
-        <div>
-          <label>Thumbnail</label>
-          <input type="file" accept="image/*" onChange={(e) => setThumbnail(e.target.files ? e.target.files[0] : null)} className="w-full" />
-        </div>
-        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Upload</button>
-      </form>
+    <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="bg-[#121212] p-8 rounded-lg shadow-lg border border-gray-800">
+        <h1 className="text-2xl font-bold text-white mb-6 border-b border-gray-700 pb-4">Upload a New Video</h1>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
+            <input 
+              type="text" 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              className="w-full bg-gray-800 border border-gray-700 rounded-md text-white px-4 py-2 focus:ring-2 focus:ring-blue-500" 
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+            <textarea 
+              value={description} 
+              onChange={(e) => setDescription(e.target.value)} 
+              rows={4}
+              className="w-full bg-gray-800 border border-gray-700 rounded-md text-white px-4 py-2 focus:ring-2 focus:ring-blue-500" 
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Video File</label>
+            <input 
+              type="file" 
+              accept="video/*" 
+              onChange={(e) => setVideoFile(e.target.files ? e.target.files[0] : null)} 
+              className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Thumbnail</label>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={(e) => setThumbnail(e.target.files ? e.target.files[0] : null)} 
+              className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600"
+              required
+            />
+          </div>
+          <button 
+            type="submit" 
+            className="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Upload Video
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
