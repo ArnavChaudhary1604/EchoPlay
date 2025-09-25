@@ -1,48 +1,37 @@
 import { useState, useEffect } from "react";
+import { Card } from "../components/ui/Card";
+import VideoCard from "../components/VideoCard";
+import { Users, Bell, BellOff } from "lucide-react";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import { Bell } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function Subscriptions() {
+  const [videos, setVideos] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     const fetchSubscriptions = async () => {
-      const token = localStorage.getItem("accessToken");
-      const userString = localStorage.getItem("user");
-
-      if (!token || !userString) {
-        setLoading(false);
-        setError("Please log in to view your subscriptions.");
-        return;
-      }
-      
       try {
-        const user = JSON.parse(userString);
-        const subscriberId = user._id;
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          setError("Please log in to view your subscriptions.");
+          setLoading(false);
+          return;
+        }
 
-        const response = await axios.get(`${API_BASE_URL}/subscriptions/u/${subscriberId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        // Backend se channel details (avatar, fullName) laane ke liye ek extra API call
-        const channelDetailsPromises = response.data.data.map((sub: any) => 
-            axios.get(`${API_BASE_URL}/users/c/${sub.channel.username}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-        );
+        // Simulate subscription data - replace with actual API calls
+        setSubscriptions([
+          { id: 1, username: "TechGuru", avatar: "https://via.placeholder.com/40", subscribers: "1.2M" },
+          { id: 2, username: "CodeMaster", avatar: "https://via.placeholder.com/40", subscribers: "850K" },
+          { id: 3, username: "DesignPro", avatar: "https://via.placeholder.com/40", subscribers: "650K" },
+        ]);
         
-        const channelDetailsResponses = await Promise.all(channelDetailsPromises);
-        const detailedSubscriptions = channelDetailsResponses.map(res => res.data.data);
-
-        setSubscriptions(detailedSubscriptions);
+        setVideos([]);
       } catch (err) {
         setError("Failed to fetch subscriptions.");
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -51,35 +40,107 @@ function Subscriptions() {
     fetchSubscriptions();
   }, []);
 
-  if (loading) return <div className="text-center p-10 text-gray-400">Loading Subscriptions...</div>;
-  
-  if (error) return <div className="text-center p-10 text-red-500">{error}</div>;
-
-  return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <h1 className="text-3xl font-bold text-white mb-8">My Subscriptions</h1>
-      {subscriptions.length > 0 ? (
-        <div className="max-w-4xl mx-auto space-y-4">
-          {subscriptions.map((channel) => (
-            <div key={channel._id} className="flex items-center justify-between bg-[#121212] p-4 rounded-lg border border-gray-800 hover:bg-gray-800/50 transition-colors">
-              <div className="flex items-center space-x-4">
-                <img src={channel.avatar} alt={channel.username} className="w-16 h-16 rounded-full" />
-                <div>
-                  <h2 className="text-lg font-semibold text-white">{channel.fullName}</h2>
-                  <p className="text-sm text-gray-400">@{channel.username}</p>
-                  <p className="text-xs text-gray-500">{channel.subcribersCount} subscribers</p>
-                </div>
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <Card key={i} className="h-64 animate-pulse">
+              <div className="w-full h-40 bg-surface-light rounded-lg mb-4"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-surface-light rounded w-3/4"></div>
+                <div className="h-3 bg-surface-light rounded w-1/2"></div>
               </div>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-700 text-white rounded-full font-semibold hover:bg-gray-600">
-                <Bell className="w-4 h-4" />
-                <span>Subscribed</span>
-              </button>
-            </div>
+            </Card>
           ))}
         </div>
-      ) : (
-        <p className="text-center text-gray-400 mt-10">You are not subscribed to any channels yet.</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <Card className="text-center max-w-md">
+          <div className="text-error text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-text-primary mb-2">Something went wrong</h2>
+          <p className="text-text-secondary">{error}</p>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 animate-slide-up">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold gradient-text mb-2">
+          Your Subscriptions
+        </h1>
+        <p className="text-text-secondary">
+          Stay updated with content from creators you follow
+        </p>
+      </div>
+
+      {/* Subscribed Channels */}
+      {subscriptions.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-text-primary mb-4 flex items-center">
+            <Users className="w-5 h-5 mr-2" />
+            Subscribed Channels
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {subscriptions.map((channel) => (
+              <Card key={channel.id} className="!p-4 text-center">
+                <img
+                  src={channel.avatar}
+                  alt={channel.username}
+                  className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-border"
+                />
+                <h3 className="font-semibold text-text-primary mb-1">{channel.username}</h3>
+                <p className="text-sm text-text-secondary mb-3">{channel.subscribers} subscribers</p>
+                
+                <div className="flex space-x-2">
+                  <button className="flex-1 btn-secondary text-sm py-2">
+                    <Bell className="w-4 h-4 mr-1" />
+                    Subscribed
+                  </button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       )}
+
+      {/* Latest Videos */}
+      <div>
+        <h2 className="text-xl font-semibold text-text-primary mb-4">
+          Latest from Your Subscriptions
+        </h2>
+        
+        {videos.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+            {videos.map((video, index) => (
+              <div key={video._id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <VideoCard video={video} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center min-h-64">
+            <Card className="text-center max-w-md">
+              <div className="text-6xl mb-4">📺</div>
+              <h3 className="text-lg font-semibold text-text-primary mb-2">No new videos</h3>
+              <p className="text-text-secondary mb-4">
+                Your subscribed channels haven't posted any new content yet.
+              </p>
+              <a href="/" className="btn-primary inline-flex items-center space-x-2">
+                <span>Discover More Channels</span>
+              </a>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

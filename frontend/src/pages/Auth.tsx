@@ -1,6 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Card } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { User, Mail, Lock, Upload } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -22,13 +26,15 @@ function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-        const response = await axios.post(`${API_BASE_URL}/users/login`, { email: loginEmail, password: loginPassword });
-        localStorage.setItem('accessToken', response.data.data.accessToken);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        alert("Login successful!");
-        navigate("/");
+      const response = await axios.post(`${API_BASE_URL}/users/login`, { 
+        email: loginEmail, 
+        password: loginPassword 
+      });
+      localStorage.setItem('accessToken', response.data.data.accessToken);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      navigate("/");
     } catch (error) {
-        alert("Login failed. Please check your credentials.");
+      alert("Login failed. Please check your credentials.");
     }
   };
 
@@ -46,69 +52,141 @@ function Auth() {
     formData.append("avatar", avatar);
 
     try {
-        await axios.post(`${API_BASE_URL}/users/register`, formData, { headers: { "Content-Type": "multipart/form-data" } });
-        alert("Registration successful! Please log in.");
-        setIsLogin(true);
+      await axios.post(`${API_BASE_URL}/users/register`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      alert("Registration successful! Please login.");
+      setIsLogin(true);
     } catch (error) {
-        alert("Registration failed. Please try again.");
+      alert("Registration failed. Please try again.");
     }
   };
 
   return (
-    <div className="flex justify-center items-start pt-16">
-      <div className="w-full max-w-md p-8 space-y-6 bg-[#121212] rounded-xl shadow-2xl border border-gray-800">
-        <div className="flex border-b border-gray-700">
-          <button onClick={() => setIsLogin(true)} className={`w-1/2 py-3 text-center font-semibold transition-colors ${isLogin ? 'border-b-2 border-blue-500 text-white' : 'text-gray-400 hover:text-white'}`}>
-            Login
-          </button>
-          <button onClick={() => setIsLogin(false)} className={`w-1/2 py-3 text-center font-semibold transition-colors ${!isLogin ? 'border-b-2 border-blue-500 text-white' : 'text-gray-400 hover:text-white'}`}>
-            Register
-          </button>
-        </div>
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-md animate-scale-in">
+        <Card variant="glass" className="!p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-primary rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-glow">
+              <User className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold gradient-text mb-2">
+              {isLogin ? 'Welcome Back' : 'Join EchoPlay'}
+            </h1>
+            <p className="text-text-secondary">
+              {isLogin ? 'Sign in to your account' : 'Create your account to get started'}
+            </p>
+          </div>
 
-        {isLogin ? (
-          <form onSubmit={handleLogin} className="space-y-6">
-            <h2 className="text-2xl font-bold text-center text-white">Welcome Back!</h2>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Email or Username</label>
-              <input type="text" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required className="w-full px-4 py-2 mt-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Password</label>
-              <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required className="w-full px-4 py-2 mt-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-            </div>
-            <button type="submit" className="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors duration-300">
-              Login
+          {/* Forms */}
+          {isLogin ? (
+            <form onSubmit={handleLogin} className="space-y-6">
+              <Input
+                type="email"
+                label="Email"
+                placeholder="Enter your email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                icon={<Mail className="w-5 h-5" />}
+                required
+              />
+              <Input
+                type="password"
+                label="Password"
+                placeholder="Enter your password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                icon={<Lock className="w-5 h-5" />}
+                required
+              />
+              <Button type="submit" className="w-full">
+                Sign In
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister} className="space-y-6">
+              <Input
+                type="text"
+                label="Full Name"
+                placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                icon={<User className="w-5 h-5" />}
+                required
+              />
+              <Input
+                type="text"
+                label="Username"
+                placeholder="Choose a username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                icon={<User className="w-5 h-5" />}
+                required
+              />
+              <Input
+                type="email"
+                label="Email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                icon={<Mail className="w-5 h-5" />}
+                required
+              />
+              <Input
+                type="password"
+                label="Password"
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                icon={<Lock className="w-5 h-5" />}
+                required
+              />
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Avatar Image
+                </label>
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setAvatar(e.target.files?.[0] || null)}
+                    className="hidden"
+                    id="avatar-upload"
+                    required
+                  />
+                  <label
+                    htmlFor="avatar-upload"
+                    className="btn-secondary cursor-pointer flex items-center space-x-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>Choose Image</span>
+                  </label>
+                  {avatar && (
+                    <span className="text-sm text-text-secondary">{avatar.name}</span>
+                  )}
+                </div>
+              </div>
+              <Button type="submit" className="w-full">
+                Create Account
+              </Button>
+            </form>
+          )}
+
+          {/* Toggle */}
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-sm text-text-secondary hover:text-primary transition-colors"
+            >
+              {isLogin 
+                ? "Don't have an account? Sign up" 
+                : "Already have an account? Sign in"
+              }
             </button>
-          </form>
-        ) : (
-          <form onSubmit={handleRegister} className="space-y-6">
-            <h2 className="text-2xl font-bold text-center text-white">Create an Account</h2>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Full Name</label>
-              <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="w-full px-4 py-2 mt-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Username</label>
-              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required className="w-full px-4 py-2 mt-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-2 mt-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-4 py-2 mt-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-                <label className="text-sm font-medium text-gray-300">Avatar</label>
-                <input type="file" accept="image/*" onChange={(e) => setAvatar(e.target.files ? e.target.files[0] : null)} required className="w-full mt-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600"/>
-            </div>
-            <button type="submit" className="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors duration-300">
-              Create Account
-            </button>
-          </form>
-        )}
+          </div>
+        </Card>
       </div>
     </div>
   );

@@ -1,100 +1,311 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { Card } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Upload, Video, Image, FileText, Tag } from "lucide-react";
+import { videoApi } from "../services/api";
+import { useToast } from "../hooks/use-toast.ts";
 
 function UploadVideo() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    tags: "",
+  });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
-  const navigate = useNavigate();
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!videoFile || !thumbnail || !title || !description) {
-      alert("Please fill all fields and select both files.");
+    
+    if (!videoFile) {
+      toast({
+        title: "Missing Video File",
+        description: "Please select a video file to upload.",
+        variant: "destructive",
+      });
       return;
     }
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("videoFile", videoFile);
-    formData.append("thumbnail", thumbnail);
-
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-        alert("You must be logged in to upload a video.");
-        return;
+    if (!thumbnail) {
+      toast({
+        title: "Missing Thumbnail",
+        description: "Please select a thumbnail image.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    try {
-      const response = await axios.post(`${API_BASE_URL}/videos`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}`
-        },
+    if (!formData.title.trim()) {
+      toast({
+        title: "Missing Title",
+        description: "Please enter a title for your video.",
+        variant: "destructive",
       });
-      alert("Video uploaded successfully!");
-      navigate(`/video/${response.data.data._id}`);
-    } catch (error) {
-      alert("Upload failed. Please try again.");
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      toast({
+        title: "Missing Description",
+        description: "Please enter a description for your video.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to upload videos.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
+      const uploadData = new FormData();
+      uploadData.append("title", formData.title);
+      uploadData.append("description", formData.description);
+      if (formData.tags.trim()) {
+        uploadData.append("tags", formData.tags);
+      }
+      uploadData.append("videoFile", videoFile);
+      uploadData.append("thumbnail", thumbnail);
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 500);
+
+      const response = await videoApi.publishVideo(uploadData);
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      if (response.success) {
+        toast({
+          title: "Upload Successful!",
+          description: "Your video has been uploaded successfully.",
+        });
+        
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1500);
+      }
+
+    } catch (error: any) {
+      console.error("Upload failed:", error);
+      toast({
+        title: "Upload Failed",
+        description: error.response?.data?.message || "Failed to upload video. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8">
-      <div className="bg-[#121212] p-8 rounded-lg shadow-lg border border-gray-800">
-        <h1 className="text-2xl font-bold text-white mb-6 border-b border-gray-700 pb-4">Upload a New Video</h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-            <input 
-              type="text" 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              className="w-full bg-gray-800 border border-gray-700 rounded-md text-white px-4 py-2 focus:ring-2 focus:ring-blue-500" 
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
-            <textarea 
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
-              rows={4}
-              className="w-full bg-gray-800 border border-gray-700 rounded-md text-white px-4 py-2 focus:ring-2 focus:ring-blue-500" 
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Video File</label>
-            <input 
-              type="file" 
-              accept="video/*" 
-              onChange={(e) => setVideoFile(e.target.files ? e.target.files[0] : null)} 
-              className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Thumbnail</label>
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={(e) => setThumbnail(e.target.files ? e.target.files[0] : null)} 
-              className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600"
-              required
-            />
-          </div>
-          <button 
-            type="submit" 
-            className="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-          >
+    <div className="p-6 animate-slide-up">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold gradient-text mb-2">
             Upload Video
-          </button>
+          </h1>
+          <p className="text-text-secondary">
+            Share your content with the EchoPlay community
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Video Upload */}
+            <Card className="!p-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                <Video className="w-5 h-5 mr-2" />
+                Video File
+              </h3>
+              
+              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="video-upload"
+                  required
+                />
+                <label
+                  htmlFor="video-upload"
+                  className="cursor-pointer block"
+                >
+                  <div className="w-16 h-16 bg-gradient-primary rounded-xl mx-auto mb-4 flex items-center justify-center">
+                    <Upload className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="text-lg font-medium text-text-primary mb-2">
+                    Choose Video File
+                  </h4>
+                  <p className="text-text-secondary text-sm">
+                    MP4, WebM, or MOV format recommended
+                  </p>
+                </label>
+                
+                {videoFile && (
+                  <div className="mt-4 p-3 bg-surface-light rounded-lg">
+                    <p className="text-sm text-text-primary font-medium">{videoFile.name}</p>
+                    <p className="text-xs text-text-muted">
+                      {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Thumbnail Upload */}
+            <Card className="!p-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                <Image className="w-5 h-5 mr-2" />
+                Thumbnail
+              </h3>
+              
+              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setThumbnail(e.target.files?.[0] || null)}
+                  className="hidden"
+                  id="thumbnail-upload"
+                  required
+                />
+                <label
+                  htmlFor="thumbnail-upload"
+                  className="cursor-pointer block"
+                >
+                  <div className="w-16 h-16 bg-gradient-secondary rounded-xl mx-auto mb-4 flex items-center justify-center">
+                    <Image className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="text-lg font-medium text-text-primary mb-2">
+                    Choose Thumbnail
+                  </h4>
+                  <p className="text-text-secondary text-sm">
+                    JPG, PNG format (16:9 ratio recommended)
+                  </p>
+                </label>
+                
+                {thumbnail && (
+                  <div className="mt-4 p-3 bg-surface-light rounded-lg">
+                    <p className="text-sm text-text-primary font-medium">{thumbnail.name}</p>
+                    <img
+                      src={URL.createObjectURL(thumbnail)}
+                      alt="Thumbnail preview"
+                      className="w-full h-24 object-cover rounded-lg mt-2"
+                    />
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Video Details */}
+          <Card className="!p-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              Video Details
+            </h3>
+            
+            <div className="space-y-4">
+              <Input
+                label="Title"
+                name="title"
+                placeholder="Enter video title"
+                value={formData.title}
+                onChange={handleInputChange}
+                required
+              />
+              
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  placeholder="Describe your video..."
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={4}
+                  className="input resize-none"
+                  required
+                />
+              </div>
+              
+              <Input
+                label="Tags"
+                name="tags"
+                placeholder="Enter tags separated by commas (e.g., react, tutorial, programming)"
+                value={formData.tags}
+                onChange={handleInputChange}
+                icon={<Tag className="w-5 h-5" />}
+              />
+            </div>
+          </Card>
+
+          {/* Upload Progress */}
+          {uploading && (
+            <Card className="!p-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-4">
+                Uploading Video...
+              </h3>
+              <div className="w-full bg-surface-light rounded-full h-3 mb-2">
+                <div
+                  className="bg-gradient-primary h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-text-secondary">{uploadProgress}% complete</p>
+            </Card>
+          )}
+
+          {/* Submit Button */}
+          <div className="flex justify-end space-x-4">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate("/dashboard")}
+              disabled={uploading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={uploading || !videoFile || !thumbnail}
+              className="min-w-32"
+            >
+              {uploading ? "Uploading..." : "Upload Video"}
+            </Button>
+          </div>
         </form>
       </div>
     </div>
