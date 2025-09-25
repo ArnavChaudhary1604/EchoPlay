@@ -7,14 +7,19 @@
     "types": [],
     "skipLibCheck": true,
 
-    /* Bundler mode */
+    /* Project references */
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist", // ✅ required output folder
+
+    /* Module / import settings */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
-    "noEmit": true,
 
-    /* Linting */
+    /* Strictness / linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
