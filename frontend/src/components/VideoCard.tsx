@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Card } from "./ui/Card";
-import { formatNumber, timeAgo } from "../lib/utils";
+import { formatNumber, timeAgo } from "../lib/utils.ts";
 import { Play, Eye } from "lucide-react";
 
 type Video = {
